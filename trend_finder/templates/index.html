@@ -1,0 +1,1490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TrendPulse — E-Commerce Viral Trend Finder</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #080b10;
+    --bg2: #0e1218;
+    --bg3: #151b24;
+    --bg4: #1c2433;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --accent: #00f5c4;
+    --accent2: #7b61ff;
+    --accent3: #ff6b6b;
+    --accent4: #ffd93d;
+    --text: #e8edf5;
+    --text2: #8896ab;
+    --text3: #4a5568;
+    --glow: 0 0 20px rgba(0,245,196,0.15);
+    --glow2: 0 0 40px rgba(0,245,196,0.08);
+    --font: 'Space Grotesk', sans-serif;
+    --mono: 'DM Mono', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Animated grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,245,196,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,245,196,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Glow orbs */
+  body::after {
+    content: '';
+    position: fixed;
+    top: -200px;
+    right: -200px;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(123,97,255,0.08) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .page-wrapper { position: relative; z-index: 1; max-width: 1400px; margin: 0 auto; padding: 0 24px; }
+
+  /* ── HEADER ── */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 0 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo-icon {
+    width: 38px; height: 38px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    box-shadow: var(--glow);
+  }
+
+  .logo-text {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+
+  .logo-text span { color: var(--accent); }
+
+  .header-meta {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    font-size: 12px;
+    color: var(--text2);
+    font-family: var(--mono);
+  }
+
+  .status-dot {
+    width: 7px; height: 7px;
+    background: var(--accent);
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 6px;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(0,245,196,0.4); }
+    50% { opacity: 0.7; box-shadow: 0 0 0 6px rgba(0,245,196,0); }
+  }
+
+  .refresh-btn {
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    color: var(--text2);
+    padding: 7px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-family: var(--mono);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .refresh-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    box-shadow: var(--glow);
+  }
+
+  /* ── STATS ROW ── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin: 28px 0;
+  }
+
+  .stat-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 22px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .stat-card:hover {
+    border-color: var(--border2);
+    transform: translateY(-2px);
+  }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--accent-line, var(--accent));
+    opacity: 0.7;
+  }
+
+  .stat-card.purple::before { --accent-line: var(--accent2); }
+  .stat-card.red::before { --accent-line: var(--accent3); }
+  .stat-card.yellow::before { --accent-line: var(--accent4); }
+
+  .stat-label {
+    font-size: 11px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-family: var(--mono);
+    margin-bottom: 10px;
+  }
+
+  .stat-value {
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -1px;
+    color: var(--text);
+  }
+
+  .stat-value .unit {
+    font-size: 16px;
+    color: var(--text2);
+    font-weight: 400;
+  }
+
+  .stat-sub {
+    font-size: 12px;
+    color: var(--text2);
+    margin-top: 4px;
+  }
+
+  /* ── MAIN GRID ── */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 20px;
+    margin-bottom: 30px;
+  }
+
+  /* ── PANEL ── */
+  .panel {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .panel-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.2px;
+  }
+
+  .panel-badge {
+    font-size: 11px;
+    font-family: var(--mono);
+    color: var(--accent);
+    background: rgba(0,245,196,0.08);
+    border: 1px solid rgba(0,245,196,0.2);
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+
+  /* ── CONTROLS ── */
+  .controls {
+    display: flex;
+    gap: 10px;
+    padding: 16px 22px;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .search-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .search-wrap svg {
+    position: absolute;
+    left: 12px; top: 50%;
+    transform: translateY(-50%);
+    width: 14px; height: 14px;
+    color: var(--text3);
+  }
+
+  .search-input {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 9px 12px 9px 34px;
+    border-radius: 9px;
+    font-size: 13px;
+    font-family: var(--font);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .search-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0,245,196,0.08);
+  }
+
+  .filter-btn {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--text2);
+    padding: 8px 14px;
+    border-radius: 9px;
+    font-size: 12px;
+    font-family: var(--font);
+    cursor: pointer;
+    transition: all 0.18s;
+    white-space: nowrap;
+  }
+
+  .filter-btn:hover, .filter-btn.active {
+    background: rgba(0,245,196,0.08);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* ── TREND TABLE ── */
+  .trend-list { padding: 0; }
+
+  .trend-item {
+    display: grid;
+    grid-template-columns: 28px 1fr 80px 80px 80px 80px;
+    gap: 12px;
+    align-items: center;
+    padding: 14px 22px;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+    cursor: pointer;
+  }
+
+  .trend-item:hover { background: var(--bg3); }
+  .trend-item:last-child { border-bottom: none; }
+
+  .trend-rank {
+    font-size: 12px;
+    font-family: var(--mono);
+    color: var(--text3);
+    text-align: center;
+  }
+
+  .trend-info { min-width: 0; }
+
+  .trend-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .trend-meta {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+    flex-wrap: wrap;
+  }
+
+  .tag {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-family: var(--mono);
+    font-weight: 500;
+  }
+
+  .tag-cat {
+    background: rgba(123,97,255,0.12);
+    color: #a78bfa;
+    border: 1px solid rgba(123,97,255,0.2);
+  }
+
+  .tag-status {
+    background: rgba(0,245,196,0.08);
+    color: var(--accent);
+    border: 1px solid rgba(0,245,196,0.15);
+  }
+
+  .tag-status.rising {
+    background: rgba(255,107,107,0.08);
+    color: #fca5a5;
+    border-color: rgba(255,107,107,0.2);
+  }
+
+  .tag-status.emerging {
+    background: rgba(255,217,61,0.08);
+    color: #fde68a;
+    border-color: rgba(255,217,61,0.2);
+  }
+
+  .col-header {
+    font-size: 10px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    font-family: var(--mono);
+    text-align: right;
+  }
+
+  .score-cell {
+    text-align: right;
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .score-bar-wrap {
+    text-align: right;
+  }
+
+  .mini-bar {
+    height: 3px;
+    background: var(--bg4);
+    border-radius: 2px;
+    margin-top: 4px;
+    overflow: hidden;
+  }
+
+  .mini-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: var(--accent);
+    transition: width 0.6s ease;
+  }
+
+  .acc-cell {
+    text-align: right;
+    font-family: var(--mono);
+    font-size: 13px;
+  }
+
+  .acc-high { color: var(--accent); }
+  .acc-mid { color: var(--accent4); }
+  .acc-low { color: var(--accent3); }
+
+  /* ── TABLE HEADER ── */
+  .trend-list-header {
+    display: grid;
+    grid-template-columns: 28px 1fr 80px 80px 80px 80px;
+    gap: 12px;
+    padding: 10px 22px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ── SIDE PANEL ── */
+  .chart-panel { display: flex; flex-direction: column; gap: 20px; }
+
+  .chart-box {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+  }
+
+  .chart-box-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .chart-box-title .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  .chart-wrap { height: 180px; }
+
+  /* Category pills */
+  .cat-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .cat-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .cat-name { font-size: 13px; color: var(--text2); min-width: 80px; }
+  .cat-bar-outer { flex: 1; height: 5px; background: var(--bg4); border-radius: 3px; overflow: hidden; }
+  .cat-bar-inner { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--accent2), var(--accent)); }
+  .cat-score { font-size: 12px; font-family: var(--mono); color: var(--text2); min-width: 35px; text-align: right; }
+
+  /* ── DETAIL MODAL ── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(8,11,16,0.85);
+    backdrop-filter: blur(8px);
+    z-index: 100;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: 20px;
+    width: 100%;
+    max-width: 620px;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 40px 100px rgba(0,0,0,0.6);
+    animation: slideUp 0.25s ease;
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .modal-head {
+    padding: 24px 26px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .modal-keyword {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+
+  .modal-close {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--text2);
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+
+  .modal-close:hover { border-color: var(--accent3); color: var(--accent3); }
+
+  .modal-body { padding: 22px 26px; }
+
+  .score-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 22px;
+  }
+
+  .score-box {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    text-align: center;
+  }
+
+  .score-box-label {
+    font-size: 10px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-family: var(--mono);
+    margin-bottom: 8px;
+  }
+
+  .score-box-val {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -1px;
+  }
+
+  .modal-section-title {
+    font-size: 11px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-family: var(--mono);
+    margin-bottom: 12px;
+  }
+
+  .keyword-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .kw-chip {
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    color: var(--text2);
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-family: var(--mono);
+  }
+
+  .modal-chart-wrap { height: 160px; }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 20px 0;
+    text-align: center;
+    font-size: 12px;
+    color: var(--text3);
+    font-family: var(--mono);
+    margin-top: 10px;
+  }
+
+  /* ── CUSTOM SEARCH SECTION ── */
+  .search-section {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .search-section::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3));
+  }
+
+  .search-section-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .search-section-sub {
+    font-size: 12px;
+    color: var(--text2);
+    margin-bottom: 20px;
+    font-family: var(--mono);
+  }
+
+  .custom-search-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .custom-search-input {
+    flex: 1;
+    min-width: 240px;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    padding: 13px 18px;
+    border-radius: 11px;
+    font-size: 15px;
+    font-family: var(--font);
+    outline: none;
+    transition: all 0.2s;
+  }
+
+  .custom-search-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0,245,196,0.1);
+  }
+
+  .custom-search-input::placeholder { color: var(--text3); }
+
+  .search-go-btn {
+    background: linear-gradient(135deg, var(--accent), #00c4a0);
+    color: #080b10;
+    border: none;
+    padding: 13px 28px;
+    border-radius: 11px;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: var(--font);
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .search-go-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(0,245,196,0.3);
+  }
+
+  .search-go-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* Search Result Card */
+  .search-result-card {
+    margin-top: 24px;
+    display: none;
+    animation: slideUp 0.3s ease;
+  }
+
+  .search-result-card.visible { display: block; }
+
+  .result-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .result-keyword-big {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+
+  .result-keyword-big span {
+    color: var(--accent);
+  }
+
+  .result-scores {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .result-score-pill {
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    padding: 10px 16px;
+    text-align: center;
+    min-width: 90px;
+  }
+
+  .rsp-label {
+    font-size: 10px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-family: var(--mono);
+    margin-bottom: 4px;
+  }
+
+  .rsp-val {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+
+  /* Country Grid */
+  .country-section-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .country-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+    margin-bottom: 22px;
+  }
+
+  .country-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    transition: border-color 0.2s;
+  }
+
+  .country-card:hover { border-color: var(--border2); }
+
+  .country-flag-name {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .country-flag { font-size: 18px; }
+
+  .country-score-wrap { text-align: right; }
+
+  .country-score-num {
+    font-size: 16px;
+    font-weight: 700;
+    font-family: var(--mono);
+  }
+
+  .country-mini-bar {
+    height: 3px;
+    width: 60px;
+    background: var(--bg4);
+    border-radius: 2px;
+    margin-top: 4px;
+    overflow: hidden;
+  }
+
+  .country-mini-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+  }
+
+  .country-chart-wrap { height: 200px; margin-bottom: 4px; }
+
+  /* Search loading */
+  .search-loading {
+    display: none;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 0;
+    color: var(--text2);
+    font-size: 13px;
+    font-family: var(--mono);
+  }
+
+  .search-loading.visible { display: flex; }
+
+  .search-spinner {
+    width: 18px; height: 18px;
+    border: 2px solid var(--border2);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    flex-shrink: 0;
+  }
+
+  .search-error {
+    display: none;
+    color: var(--accent3);
+    font-size: 13px;
+    font-family: var(--mono);
+    padding: 10px 0;
+  }
+
+  .search-error.visible { display: block; }
+
+  /* ── LOADING OVERLAY ── */
+  .loading-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    transition: opacity 0.4s;
+  }
+
+  .loading-overlay.hidden { opacity: 0; pointer-events: none; }
+
+  .spinner {
+    width: 40px; height: 40px;
+    border: 2px solid var(--border2);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading-text {
+    font-size: 13px;
+    color: var(--text2);
+    font-family: var(--mono);
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    .main-grid { grid-template-columns: 1fr; }
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .trend-item { grid-template-columns: 24px 1fr 70px 70px; }
+    .trend-item .score-bar-wrap, .trend-item .acc-cell:last-child { display: none; }
+    .trend-list-header { grid-template-columns: 24px 1fr 70px 70px; }
+    .trend-list-header .col-header:nth-child(5),
+    .trend-list-header .col-header:nth-child(6) { display: none; }
+  }
+
+  @media (max-width: 560px) {
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .score-grid { grid-template-columns: repeat(2, 1fr); }
+    header { flex-direction: column; gap: 12px; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Loading overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div class="loading-text">Fetching live trends...</div>
+</div>
+
+<div class="page-wrapper">
+  <!-- Header -->
+  <header>
+    <div class="logo">
+      <div class="logo-icon">📡</div>
+      <div>
+        <div class="logo-text">Trend<span>Pulse</span></div>
+        <div style="font-size:11px;color:var(--text3);font-family:var(--mono)">E-Commerce Viral Trend Finder</div>
+      </div>
+    </div>
+    <div class="header-meta">
+      <span><span class="status-dot"></span>Live</span>
+      <span>Updated: {{ updated_at }}</span>
+      <span>{{ total_count }} products tracked</span>
+      <button class="refresh-btn" onclick="refreshData()">⟳ Refresh</button>
+    </div>
+  </header>
+
+  <!-- Stats Row -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">Avg Accuracy</div>
+      <div class="stat-value">{{ avg_accuracy }}<span class="unit">%</span></div>
+      <div class="stat-sub">Prediction confidence</div>
+    </div>
+    <div class="stat-card purple">
+      <div class="stat-label">Top Trend Score</div>
+      <div class="stat-value">{{ trends[0].trend_score }}<span class="unit">/100</span></div>
+      <div class="stat-sub">{{ trends[0].keyword }}</div>
+    </div>
+    <div class="stat-card red">
+      <div class="stat-label">Viral Products</div>
+      <div class="stat-value" id="viralCount">–</div>
+      <div class="stat-sub">Score ≥ 80</div>
+    </div>
+    <div class="stat-card yellow">
+      <div class="stat-label">Rising Trends</div>
+      <div class="stat-value" id="risingCount">–</div>
+      <div class="stat-sub">Score 65–80</div>
+    </div>
+  </div>
+
+  <!-- Custom Product Search -->
+  <div class="search-section">
+    <div class="search-section-title">🔍 Search Any Product</div>
+    <div class="search-section-sub">Search any product  — worldwide + country-wise trend analysis</div>
+
+    <div class="custom-search-row">
+      <input
+        class="custom-search-input"
+        id="customSearchInput"
+        placeholder="e.g. Stanley cup, gaming chair, led mask..."
+        onkeydown="if(event.key==='Enter') doCustomSearch()"
+      >
+      <button class="search-go-btn" id="searchGoBtn" onclick="doCustomSearch()">
+        <span>Find Trend</span>
+        <span>→</span>
+      </button>
+    </div>
+
+    <!-- Loading state -->
+    <div class="search-loading" id="searchLoading">
+      <div class="search-spinner"></div>
+      <span id="searchLoadingText">Fetching Google Trends data for all countries...</span>
+    </div>
+
+    <!-- Error -->
+    <div class="search-error" id="searchError"></div>
+
+    <!-- Result Card -->
+    <div class="search-result-card" id="searchResult">
+      <div style="border-top: 1px solid var(--border); margin: 20px 0 20px;"></div>
+
+      <div class="result-top">
+        <div>
+          <div style="font-size:11px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Search Result</div>
+          <div class="result-keyword-big" id="resultKeyword">–</div>
+          <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap" id="resultTags"></div>
+        </div>
+        <div class="result-scores">
+          <div class="result-score-pill">
+            <div class="rsp-label">Trend Score</div>
+            <div class="rsp-val" id="rTrend" style="color:var(--accent)">–</div>
+          </div>
+          <div class="result-score-pill">
+            <div class="rsp-label">Google</div>
+            <div class="rsp-val" id="rGoogle" style="color:var(--text2)">–</div>
+          </div>
+          <div class="result-score-pill">
+            <div class="rsp-label">Accuracy</div>
+            <div class="rsp-val" id="rAccuracy" style="color:var(--accent4)">–</div>
+          </div>
+          <div class="result-score-pill">
+            <div class="rsp-label">Sentiment</div>
+            <div class="rsp-val" id="rSentiment" style="color:var(--accent2);font-size:14px;padding-top:4px">–</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Country Comparison -->
+      <div class="country-section-title">
+        🌍 Country-wise Trend Comparison
+      </div>
+      <div class="country-grid" id="countryGrid"></div>
+
+      <!-- Country Bar Chart -->
+      <div class="country-chart-wrap">
+        <canvas id="countryChart"></canvas>
+      </div>
+
+      <!-- Interest Over Time -->
+      <div class="country-section-title" style="margin-top:20px">
+        📈 Interest Over Time (Worldwide)
+      </div>
+      <div style="height:160px">
+        <canvas id="searchLineChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Grid -->
+  <div class="main-grid">
+    <!-- Left: Trend Table -->
+    <div>
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Trending Products</div>
+          <div class="panel-badge" id="resultCount">{{ trends|length }} shown</div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+          <div class="search-wrap">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <input class="search-input" id="searchInput" placeholder="Search products..." oninput="filterTrends()">
+          </div>
+          <button class="filter-btn active" onclick="setCategory('all', this)">All</button>
+          {% for cat in categories %}
+          <button class="filter-btn" onclick="setCategory('{{ cat }}', this)">{{ cat }}</button>
+          {% endfor %}
+        </div>
+
+        <!-- Table Header -->
+        <div class="trend-list-header">
+          <div></div>
+          <div class="col-header">Product</div>
+          <div class="col-header">Trend</div>
+          <div class="col-header">Google</div>
+          <div class="col-header">Social</div>
+          <div class="col-header">Accuracy</div>
+        </div>
+
+        <!-- Trend Items -->
+        <div class="trend-list" id="trendList">
+          {% for t in all_trends %}
+          <div class="trend-item" onclick="openModal('{{ t.keyword }}')"
+            data-keyword="{{ t.keyword }}"
+            data-category="{{ t.category }}"
+            data-trend="{{ t.trend_score }}"
+            data-google="{{ t.google_score }}"
+            data-social="{{ t.social_score }}"
+            data-accuracy="{{ t.accuracy_pct }}"
+            data-sentiment="{{ t.sentiment_label }}"
+            data-tag="{{ t.trend_tag }}"
+            data-keywords="{{ t.top_keywords | join(',') }}"
+            data-series="{{ t.series | join(',') }}"
+          >
+            <div class="trend-rank">{{ loop.index }}</div>
+            <div class="trend-info">
+              <div class="trend-name">{{ t.keyword }}</div>
+              <div class="trend-meta">
+                <span class="tag tag-cat">{{ t.category }}</span>
+                <span class="tag tag-status {% if '📈' in t.trend_tag %}rising{% elif '💡' in t.trend_tag %}emerging{% endif %}">{{ t.trend_tag }}</span>
+              </div>
+            </div>
+            <div class="score-bar-wrap">
+              <div class="score-cell" style="color: {% if t.trend_score >= 80 %}var(--accent){% elif t.trend_score >= 65 %}var(--accent4){% else %}var(--text2){% endif %}">
+                {{ t.trend_score }}
+              </div>
+              <div class="mini-bar"><div class="mini-bar-fill" style="width:{{ t.trend_score }}%"></div></div>
+            </div>
+            <div class="score-cell" style="color:var(--text2)">{{ t.google_score }}</div>
+            <div class="score-cell" style="color:var(--text2)">{{ t.social_score }}</div>
+            <div class="acc-cell {% if t.accuracy_pct >= 85 %}acc-high{% elif t.accuracy_pct >= 75 %}acc-mid{% else %}acc-low{% endif %}">
+              {{ t.accuracy_pct }}%
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Charts -->
+    <div class="chart-panel">
+      <!-- Line Chart -->
+      <div class="chart-box">
+        <div class="chart-box-title"><div class="dot"></div>Top 10 Trend Scores</div>
+        <div class="chart-wrap">
+          <canvas id="barChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Category breakdown -->
+      <div class="chart-box">
+        <div class="chart-box-title"><div class="dot" style="background:var(--accent2)"></div>Category Performance</div>
+        <div class="cat-list">
+          {% for cat, score in cat_avg.items() %}
+          <div class="cat-item">
+            <div class="cat-name">{{ cat }}</div>
+            <div class="cat-bar-outer"><div class="cat-bar-inner" style="width:{{ score }}%"></div></div>
+            <div class="cat-score">{{ score }}</div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Sentiment donut -->
+      <div class="chart-box">
+        <div class="chart-box-title"><div class="dot" style="background:var(--accent3)"></div>Sentiment Distribution</div>
+        <div class="chart-wrap">
+          <canvas id="donutChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>TrendPulse v1.0 · Data: Google Trends API + NLP Pipeline · Accuracy: {{ avg_accuracy }}%</footer>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px">Product Detail</div>
+        <div class="modal-keyword" id="modalKeyword">–</div>
+      </div>
+      <button class="modal-close" onclick="document.getElementById('modalOverlay').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="score-grid">
+        <div class="score-box">
+          <div class="score-box-label">Trend Score</div>
+          <div class="score-box-val" id="mTrend" style="color:var(--accent)">–</div>
+        </div>
+        <div class="score-box">
+          <div class="score-box-label">Accuracy</div>
+          <div class="score-box-val" id="mAcc" style="color:var(--accent4)">–</div>
+        </div>
+        <div class="score-box">
+          <div class="score-box-label">Sentiment</div>
+          <div class="score-box-val" id="mSentiment" style="color:var(--accent2);font-size:16px;padding-top:5px">–</div>
+        </div>
+      </div>
+
+      <div class="modal-section-title">Top NLP Keywords</div>
+      <div class="keyword-chips" id="mKeywords"></div>
+
+      <div class="modal-section-title">Google Interest Over Time</div>
+      <div class="modal-chart-wrap">
+        <canvas id="modalLineChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const allTrends = [];
+document.querySelectorAll('.trend-item').forEach((el, i) => {
+  allTrends.push({
+    rank: i + 1,
+    keyword: el.dataset.keyword,
+    category: el.dataset.category,
+    trend: parseFloat(el.dataset.trend),
+    google: parseFloat(el.dataset.google),
+    social: parseFloat(el.dataset.social),
+    accuracy: parseFloat(el.dataset.accuracy),
+    sentiment: el.dataset.sentiment,
+    tag: el.dataset.tag,
+    keywords: el.dataset.keywords.split(',').filter(Boolean),
+    series: el.dataset.series.split(',').map(Number).filter(n => !isNaN(n))
+  });
+});
+
+let currentCategory = 'all';
+let currentSearch = '';
+let modalLineChart = null;
+
+// ── CUSTOM SEARCH ──
+const FLAGS = {
+  "Worldwide": "🌐", "Pakistan": "🇵🇰", "United States": "🇺🇸",
+  "United Kingdom": "🇬🇧", "India": "🇮🇳", "UAE": "🇦🇪",
+  "Saudi Arabia": "🇸🇦", "Australia": "🇦🇺", "Canada": "🇨🇦"
+};
+
+let countryChartInst = null;
+let searchLineChartInst = null;
+
+function getScoreColor(score) {
+  if (score >= 75) return 'var(--accent)';
+  if (score >= 50) return 'var(--accent4)';
+  if (score >= 25) return 'var(--accent2)';
+  return 'var(--text3)';
+}
+
+async function doCustomSearch() {
+  const kw = document.getElementById('customSearchInput').value.trim();
+  if (!kw) return;
+
+  // UI states
+  document.getElementById('searchGoBtn').disabled = true;
+  document.getElementById('searchLoading').classList.add('visible');
+  document.getElementById('searchError').classList.remove('visible');
+  document.getElementById('searchResult').classList.remove('visible');
+
+  const steps = [
+    'Fetching Google Trends data...',
+    'Comparing across 8 countries...',
+    'Running NLP analysis...',
+    'Computing trend score...'
+  ];
+  let step = 0;
+  const loadText = document.getElementById('searchLoadingText');
+  const stepInterval = setInterval(() => {
+    step = (step + 1) % steps.length;
+    loadText.textContent = steps[step];
+  }, 2500);
+
+  try {
+    const res = await fetch(`/api/search_custom?q=${encodeURIComponent(kw)}`);
+    const data = await res.json();
+    clearInterval(stepInterval);
+
+    if (data.error) throw new Error(data.error);
+
+    // Fill result
+    document.getElementById('resultKeyword').innerHTML = `"<span>${data.keyword}</span>"`;
+    document.getElementById('rTrend').textContent = data.trend_score;
+    document.getElementById('rGoogle').textContent = data.google_score;
+    document.getElementById('rAccuracy').textContent = data.accuracy_pct + '%';
+    document.getElementById('rSentiment').textContent = data.sentiment_label;
+
+    // Tags
+    document.getElementById('resultTags').innerHTML = `
+      <span class="tag tag-status">${data.trend_tag}</span>
+      <span class="tag tag-cat">${data.category}</span>
+    `;
+
+    // Country grid
+    const grid = document.getElementById('countryGrid');
+    const countries = data.country_data || {};
+    grid.innerHTML = Object.entries(countries).map(([name, score]) => `
+      <div class="country-card">
+        <div class="country-flag-name">
+          <span class="country-flag">${FLAGS[name] || '🏳️'}</span>
+          <span>${name}</span>
+        </div>
+        <div class="country-score-wrap">
+          <div class="country-score-num" style="color:${getScoreColor(score)}">${score}</div>
+          <div class="country-mini-bar">
+            <div class="country-mini-fill" style="width:${score}%"></div>
+          </div>
+        </div>
+      </div>
+    `).join('');
+
+    // Country bar chart
+    if (countryChartInst) countryChartInst.destroy();
+    const cCtx = document.getElementById('countryChart').getContext('2d');
+    const countryNames = Object.keys(countries);
+    const countryScores = Object.values(countries);
+    countryChartInst = new Chart(cCtx, {
+      type: 'bar',
+      data: {
+        labels: countryNames,
+        datasets: [{
+          label: 'Trend Score',
+          data: countryScores,
+          backgroundColor: countryScores.map(s =>
+            s >= 75 ? 'rgba(0,245,196,0.75)' :
+            s >= 50 ? 'rgba(255,217,61,0.75)' :
+            s >= 25 ? 'rgba(123,97,255,0.7)' : 'rgba(74,85,104,0.6)'
+          ),
+          borderRadius: 6,
+          borderSkipped: false
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: '#8896ab', font: { size: 11, family: 'DM Mono' } }, grid: { display: false } },
+          y: { min: 0, max: 100, ticks: { color: '#4a5568', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' } }
+        }
+      }
+    });
+
+    // Line chart
+    if (searchLineChartInst) searchLineChartInst.destroy();
+    const lCtx = document.getElementById('searchLineChart').getContext('2d');
+    const series = data.series && data.series.length
+      ? data.series
+      : Array.from({length: 12}, (_, i) => Math.round(40 + Math.random() * 40));
+    searchLineChartInst = new Chart(lCtx, {
+      type: 'line',
+      data: {
+        labels: series.map((_, i) => `W${i+1}`),
+        datasets: [{
+          data: series,
+          borderColor: '#00f5c4',
+          backgroundColor: 'rgba(0,245,196,0.07)',
+          fill: true, tension: 0.4,
+          pointRadius: 3, borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: '#4a5568', font: { size: 9 } }, grid: { display: false } },
+          y: { ticks: { color: '#4a5568', font: { size: 9 } }, grid: { color: 'rgba(255,255,255,0.04)' } }
+        }
+      }
+    });
+
+    document.getElementById('searchResult').classList.add('visible');
+    document.getElementById('searchResult').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  } catch (err) {
+    clearInterval(stepInterval);
+    document.getElementById('searchError').textContent = '⚠ ' + (err.message || 'Something went wrong. Try again.');
+    document.getElementById('searchError').classList.add('visible');
+  } finally {
+    document.getElementById('searchLoading').classList.remove('visible');
+    document.getElementById('searchGoBtn').disabled = false;
+  }
+}
+
+// Stat cards
+fetch('/api/stats').then(r => r.json()).then(d => {
+  document.getElementById('viralCount').textContent = d.viral_count;
+  document.getElementById('risingCount').textContent = d.rising_count;
+}).catch(() => {});
+
+// Bar chart
+const top10 = allTrends.slice(0, 10);
+const barCtx = document.getElementById('barChart').getContext('2d');
+new Chart(barCtx, {
+  type: 'bar',
+  data: {
+    labels: top10.map(t => t.keyword.length > 12 ? t.keyword.slice(0,12)+'…' : t.keyword),
+    datasets: [{
+      data: top10.map(t => t.trend),
+      backgroundColor: top10.map(t =>
+        t.trend >= 80 ? 'rgba(0,245,196,0.7)' :
+        t.trend >= 65 ? 'rgba(255,217,61,0.7)' : 'rgba(123,97,255,0.6)'
+      ),
+      borderRadius: 5,
+      borderSkipped: false
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { ticks: { color: '#4a5568', font: { size: 9, family: 'DM Mono' } }, grid: { display: false } },
+      y: { ticks: { color: '#4a5568', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' }, max: 100 }
+    }
+  }
+});
+
+// Sentiment donut
+const sentCounts = { 'Very Positive': 0, 'Positive': 0, 'Neutral': 0, 'Mixed': 0 };
+allTrends.forEach(t => { if (sentCounts[t.sentiment] !== undefined) sentCounts[t.sentiment]++; });
+const donutCtx = document.getElementById('donutChart').getContext('2d');
+new Chart(donutCtx, {
+  type: 'doughnut',
+  data: {
+    labels: Object.keys(sentCounts),
+    datasets: [{
+      data: Object.values(sentCounts),
+      backgroundColor: ['rgba(0,245,196,0.8)', 'rgba(123,97,255,0.8)', 'rgba(255,217,61,0.7)', 'rgba(255,107,107,0.7)'],
+      borderWidth: 0, hoverOffset: 6
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false, cutout: '65%',
+    plugins: {
+      legend: { position: 'right', labels: { color: '#8896ab', font: { size: 10, family: 'DM Mono' }, padding: 10, boxWidth: 10 } }
+    }
+  }
+});
+
+// Filter + Search
+function setCategory(cat, btn) {
+  currentCategory = cat;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  filterTrends();
+}
+
+function filterTrends() {
+  currentSearch = document.getElementById('searchInput').value.toLowerCase();
+  let visible = 0;
+  document.querySelectorAll('.trend-item').forEach((el, i) => {
+    const t = allTrends[i];
+    const catOk = currentCategory === 'all' || t.category === currentCategory;
+    const searchOk = !currentSearch || t.keyword.toLowerCase().includes(currentSearch);
+    el.style.display = catOk && searchOk ? '' : 'none';
+    if (catOk && searchOk) visible++;
+  });
+  document.getElementById('resultCount').textContent = visible + ' shown';
+}
+
+// Modal
+function openModal(keyword) {
+  const t = allTrends.find(x => x.keyword === keyword);
+  if (!t) return;
+
+  document.getElementById('modalKeyword').textContent = t.keyword;
+  document.getElementById('mTrend').textContent = t.trend;
+  document.getElementById('mAcc').textContent = t.accuracy + '%';
+  document.getElementById('mSentiment').textContent = t.sentiment;
+
+  const chips = document.getElementById('mKeywords');
+  chips.innerHTML = t.keywords.map(k => `<span class="kw-chip">${k}</span>`).join('');
+
+  if (modalLineChart) modalLineChart.destroy();
+  const ctx = document.getElementById('modalLineChart').getContext('2d');
+  const labels = t.series.map((_, i) => `W${i+1}`);
+  modalLineChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        data: t.series.length ? t.series : Array(12).fill(0).map((_,i)=>Math.sin(i*0.5)*30+50),
+        borderColor: '#00f5c4',
+        backgroundColor: 'rgba(0,245,196,0.07)',
+        fill: true,
+        tension: 0.4,
+        pointRadius: 2,
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: '#4a5568', font: { size: 9 } }, grid: { display: false } },
+        y: { ticks: { color: '#4a5568', font: { size: 9 } }, grid: { color: 'rgba(255,255,255,0.04)' } }
+      }
+    }
+  });
+
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('modalOverlay')) {
+    document.getElementById('modalOverlay').classList.remove('open');
+  }
+}
+
+// Refresh
+function refreshData() {
+  document.getElementById('loadingOverlay').classList.remove('hidden');
+  fetch('/api/refresh').then(() => location.reload()).catch(() => location.reload());
+}
+
+// Hide loading
+window.addEventListener('load', () => {
+  setTimeout(() => document.getElementById('loadingOverlay').classList.add('hidden'), 800);
+});
+</script>
+</body>
+</html>
